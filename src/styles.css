@@ -1,0 +1,548 @@
+/* ---------------------------------------------------------------- theme */
+:root {
+  --bg: #14100f;
+  --bg-panel: #1e1917;
+  --bg-raised: #2a2321;
+  --line: #3a302d;
+  --text: #ece3d8;
+  --text-dim: #a2938a;
+  --accent: #d8b25a;
+  --hard: #e5352b;
+  --normal: #ffffff;
+  --neutral-cell: #2a2321;
+  /* Completion Mark mode draws the in-game post-it note, so the black marks read on paper. */
+  --paper: #cfc6b8;
+  --paper-line: #a89e8f;
+
+  --cell-w: 52px;
+  --cell-h: 50px;
+  --rowhead-w: 152px;
+  --colhead-h: 78px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 "Segoe UI", system-ui, -apple-system, sans-serif;
+  /* The wide grid scrolls inside its own container — the page never scrolls sideways. */
+  overflow-x: hidden;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- layout */
+.app {
+  max-width: 100%;
+  padding: 20px clamp(12px, 2vw, 28px) 48px;
+}
+
+.app-header h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+}
+
+.app-header p {
+  margin: 0 0 16px;
+  color: var(--text-dim);
+  max-width: 74ch;
+}
+
+/* ---------------------------------------------------------------- toolbar */
+.toolbar {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 4px 0;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.group-label {
+  color: var(--text-dim);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.toolbar button,
+.segmented button {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.toolbar button:hover,
+.segmented button:hover {
+  border-color: var(--accent);
+}
+
+.toolbar button.danger:hover {
+  border-color: var(--hard);
+  color: #ffb3ae;
+}
+
+.segmented {
+  display: inline-flex;
+}
+
+.segmented button {
+  border-radius: 0;
+  border-left-width: 0;
+}
+
+.segmented button:first-child {
+  border-left-width: 1px;
+  border-radius: 6px 0 0 6px;
+}
+
+.segmented button:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.segmented button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #201a12;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-dim);
+}
+
+.progress strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.progress-hard strong {
+  color: var(--hard);
+}
+
+.progress-bar {
+  position: relative;
+  display: block;
+  width: 160px;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--bg-raised);
+  overflow: hidden;
+}
+
+.progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--accent);
+}
+
+.progress-fill.hard {
+  background: var(--hard);
+}
+
+.hint {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.hint em {
+  color: var(--text);
+  font-style: normal;
+}
+
+.note {
+  margin: 8px 0 0;
+  color: var(--text-dim);
+  font-size: 12px;
+  max-width: 96ch;
+}
+
+.flash {
+  margin-top: 8px;
+  min-height: 0;
+  height: 0;
+  overflow: hidden;
+  color: var(--accent);
+  font-size: 13px;
+  transition: height 0.15s ease;
+}
+
+.flash.show {
+  height: 20px;
+}
+
+/* ---------------------------------------------------------------- grid */
+.grid-scroll {
+  overflow: auto;
+  max-height: 78vh;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-panel);
+}
+
+.grid {
+  display: grid;
+  /* grid-template-columns is set inline from the visible character count */
+  width: max-content;
+}
+
+.head {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
+}
+
+.head:focus-visible,
+.cell:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  z-index: 5;
+}
+
+.head-corner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  height: var(--colhead-h);
+  display: flex;
+  align-items: flex-end;
+  padding: 6px 8px;
+  color: var(--text-dim);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  cursor: default;
+}
+
+.head-char {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: var(--colhead-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1px;
+  padding: 4px 2px 3px;
+  overflow: hidden;
+}
+
+.head-char.tainted {
+  background: #33201f;
+}
+
+.head-char.tainted .head-label {
+  color: #d59a8f;
+}
+
+.head-art {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.head-label {
+  font-size: 8.5px;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  text-align: center;
+  color: var(--text-dim);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.head-count {
+  font-size: 9px;
+  color: #6f635c;
+}
+
+.head-count.done {
+  color: var(--accent);
+}
+
+.head-boss {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  height: var(--cell-h);
+}
+
+.boss-art {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex: 0 0 auto;
+}
+
+.boss-label {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------------------------------------------------------------- cells */
+.cell {
+  position: relative;
+  height: var(--cell-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid rgba(0, 0, 0, 0.45);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.45);
+  background: var(--neutral-cell);
+  cursor: pointer;
+  user-select: none;
+}
+
+.cell.no-unlock {
+  background: var(--neutral-cell);
+}
+
+.cell.mark-mode {
+  background: var(--paper);
+  border-right-color: var(--paper-line);
+  border-bottom-color: var(--paper-line);
+}
+
+.col-tainted-start {
+  border-left: 3px solid var(--accent);
+}
+
+.cell-art {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.mark-art {
+  width: 28px;
+  height: 28px;
+}
+
+.sprite-fallback {
+  font-size: 8px;
+  line-height: 1.05;
+  text-align: center;
+  padding: 2px;
+  color: #101010;
+  pointer-events: none;
+}
+
+.cell.mark-mode .sprite-fallback {
+  color: #2a2321;
+}
+
+/* --- completion-state treatment, applied in both display modes --- */
+.cell.state-none .cell-art {
+  filter: grayscale(0.7) brightness(0.85);
+  opacity: 0.55;
+}
+
+.cell.mark-mode.state-none .cell-art {
+  filter: brightness(0);
+  opacity: 0.12;
+}
+
+.cell.state-none::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 8, 8, 0.3);
+  pointer-events: none;
+}
+
+.cell.mark-mode.state-none::after {
+  background: none;
+}
+
+.cell.state-normal .cell-art,
+.cell.state-hard .cell-art {
+  filter: none;
+  opacity: 1;
+}
+
+/* Normal mode marks are solid black in game. */
+.cell.mark-mode.state-normal .cell-art {
+  filter: brightness(0);
+}
+
+.cell.state-normal {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.85);
+}
+
+.cell.state-hard {
+  box-shadow:
+    inset 0 0 0 2px var(--hard),
+    inset 0 0 10px rgba(229, 53, 43, 0.6);
+}
+
+.cell.state-hard .cell-art {
+  filter: drop-shadow(0 0 3px rgba(229, 53, 43, 0.95));
+}
+
+/* Hard mode marks are outlined in red in game. */
+.cell.mark-mode.state-hard .cell-art {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(90%) saturate(4800%) hue-rotate(357deg)
+    brightness(94%) contrast(105%);
+}
+
+.badge {
+  position: absolute;
+  right: 1px;
+  bottom: 0;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--normal);
+  text-shadow: 0 0 3px #000, 0 0 2px #000;
+  pointer-events: none;
+}
+
+.cell.state-hard .badge {
+  color: var(--hard);
+  text-shadow: 0 0 3px #000, 0 0 2px #000;
+}
+
+.cell.mark-mode .badge {
+  color: #1c1713;
+  text-shadow: 0 0 2px var(--paper);
+}
+
+.cell.mark-mode.state-hard .badge {
+  color: #b8140c;
+  text-shadow: 0 0 2px var(--paper);
+}
+
+.cell.mark-mode.state-normal {
+  box-shadow: inset 0 0 0 2px rgba(28, 23, 19, 0.75);
+}
+
+.cell:hover {
+  filter: brightness(1.18);
+}
+
+/* ---------------------------------------------------------------- legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.legend-block {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px 12px;
+}
+
+.legend-block h2 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-dim);
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend-items li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+}
+
+.swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.swatch-none {
+  background: var(--neutral-cell);
+  border-color: var(--line);
+}
+
+.state-chip {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+  cursor: default;
+}
+
+.state-chip:hover {
+  filter: none;
+}
