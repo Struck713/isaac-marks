@@ -1,0 +1,52 @@
+{
+  // Binding of Isaac Completion Marks Tracker — dev container
+  // Stack: SolidJS + Vite + TypeScript (see PLAN.md). Node 22 satisfies the
+  // scraper's Node >= 22.6 requirement (--experimental-strip-types) and runs tsx.
+  "name": "isaac-marks",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+
+  "features": {
+    // Claude Code CLI — official Anthropic feature, takes no options. It will
+    // auto-install Node if absent; the base image already has Node 22, so it
+    // uses that instead of pulling in an older LTS.
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+    // Bundled CLIs (gh) can be handy when committing scraped assets.
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  // Vite dev server (5173) and `vite preview` (4173).
+  "forwardPorts": [5173, 4173],
+  "portsAttributes": {
+    "5173": { "label": "Vite dev", "onAutoForward": "openBrowser" },
+    "4173": { "label": "Vite preview", "onAutoForward": "silent" }
+  },
+
+  // Install deps only once the project has been scaffolded (fresh clone has no
+  // package.json yet — run `npm create vite@latest . -- --template solid-ts` first).
+  "postCreateCommand": "if [ -f package.json ]; then npm install; fi",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "typescript.tsdk": "node_modules/typescript/lib"
+      }
+    }
+  },
+
+  // VS Code forwards the port through the container, so Vite's default localhost
+  // binding works. If you open the app from the host browser directly and it
+  // won't connect, run `npm run dev -- --host` (or set `server.host: true` in
+  // vite.config.ts) so Vite binds to 0.0.0.0.
+  "remoteUser": "node"
+}
