@@ -1,17 +1,22 @@
 import { Show } from "solid-js";
-import { QUALITIES, UNLOCKS, itemSlug, type Character, type Mark } from "../data.ts";
 import { itemSprite, markIcon } from "../assets.ts";
+import {
+  QUALITIES,
+  UNLOCKS,
+  itemSlug,
+  type Character,
+  type Mark,
+} from "../data.ts";
 import { cell, cycle, cycleBack, state } from "../store.ts";
 import { Sprite } from "./Sprite.tsx";
 
-const STATE_NAME = ["not earned", "Normal", "Hard"] as const;
+const STATE_NAME = ["not earned", "normal", "hard"] as const;
 
-/**
- * One (character, mark) cell. It answers both questions at once:
- *   · what does this unlock?  → the quality-coloured background + item sprite (guide mode)
- *   · have I done it?         → the tri-state completion treatment, in both modes
- */
-export function Cell(props: { char: Character; mark: Mark; firstTainted: boolean }) {
+export function Cell(props: {
+  char: Character;
+  mark: Mark;
+  firstTainted: boolean;
+}) {
   const unlock = () => UNLOCKS[props.char.id]?.[props.mark.id];
   const value = () => cell(props.char.id, props.mark.id);
   const guide = () => !state.ui.markMode;
@@ -58,12 +63,20 @@ export function Cell(props: { char: Character; mark: Mark; firstTainted: boolean
       <Show
         when={guide()}
         fallback={
-          <Sprite class="cell-art mark-art" src={markIcon(props.mark.id)} alt={props.mark.label} />
+          <Sprite
+            class="cell-art mark-art"
+            src={markIcon(props.mark.id)}
+            alt={props.mark.label}
+          />
         }
       >
         <Show when={unlock()}>
           {(u) => (
-            <Sprite class="cell-art" src={itemSprite(itemSlug(u().wikiFile))} alt={u().item} />
+            <Sprite
+              class="cell-art"
+              src={itemSprite(itemSlug(u().wikiFile))}
+              alt={u().item}
+            />
           )}
         </Show>
       </Show>

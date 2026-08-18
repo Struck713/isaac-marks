@@ -53,18 +53,24 @@ export function sanitize(raw: unknown): Persisted {
     fresh.ui.hideCompleted = input.ui.hideCompleted === true;
   }
 
-  const marks = input.marks;
-  if (marks && typeof marks === "object") {
-    for (const [charId, row] of Object.entries(marks)) {
-      if (!CHAR_IDS.has(charId) || !row || typeof row !== "object") continue;
-      for (const [markId, value] of Object.entries(row)) {
-        if (!MARK_IDS.has(markId)) continue;
-        if (value !== 1 && value !== 2) continue; // 0 / junk = not earned
-        (fresh.marks[charId] ??= {})[markId] = value;
-      }
+  fresh.marks = sanitizeMarks(input.marks);
+  return fresh;
+}
+
+/** The marks half of `sanitize`, on its own — imports supply marks but no UI settings. */
+function sanitizeMarks(raw: unknown): Persisted["marks"] {
+  const clean: Persisted["marks"] = {};
+  if (!raw || typeof raw !== "object") return clean;
+
+  for (const [charId, row] of Object.entries(raw)) {
+    if (!CHAR_IDS.has(charId) || !row || typeof row !== "object") continue;
+    for (const [markId, value] of Object.entries(row)) {
+      if (!MARK_IDS.has(markId)) continue;
+      if (value !== 1 && value !== 2) continue; // 0 / junk = not earned
+      (clean[charId] ??= {})[markId] = value;
     }
   }
-  return fresh;
+  return clean;
 }
 
 function loadState(): Persisted {
@@ -174,21 +180,12 @@ export function reset() {
   }
 }
 
-export function snapshot(): Persisted {
-  return {
-    version: VERSION,
-    updatedAt: new Date().toISOString(),
-    ui: { ...state.ui },
-    marks: JSON.parse(JSON.stringify(state.marks)),
-  };
-}
-
-/** Replace all state with an imported file's contents. Returns false if it isn't usable. */
-export function importState(raw: unknown): boolean {
-  if (!raw || typeof raw !== "object") return false;
-  if (!("marks" in (raw as object))) return false;
-  setState(reconcile(sanitize(raw)));
-  return true;
+/**
+ * Replace every mark with a set read out of a game save file. View settings (mark mode, filters)
+ * belong to the browser, not the save, so they are left alone.
+ */
+export function importMarks(marks: Persisted["marks"]) {
+  setState("marks", reconcile(sanitizeMarks(marks)));
 }
 
 export function countsFor(charId: string) {

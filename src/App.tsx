@@ -6,11 +6,7 @@ export function App() {
   return (
     <main class="app">
       <header class="app-header">
-        <h1>Binding of Isaac — Completion Marks</h1>
-        <p>
-          Every cell shows what that character unlocks for that boss <em>and</em> tracks whether
-          you've done it. Progress is saved in this browser.
-        </p>
+        <h1>Binding of Isaac - Completion Marks</h1>
       </header>
       <Toolbar />
       <Grid />

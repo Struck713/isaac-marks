@@ -1,9 +1,8 @@
-import { CHARACTERS, type Mark } from "../data.ts";
 import { bossImage } from "../assets.ts";
+import { CHARACTERS, type Mark } from "../data.ts";
 import { cell, setMarkRow } from "../store.ts";
 import { Sprite } from "./Sprite.tsx";
 
-/** One sticky boss row header. Clicking it fills or clears that whole row. */
 export function BossHeader(props: { mark: Mark }) {
   const counts = () => {
     let earned = 0;
@@ -19,7 +18,12 @@ export function BossHeader(props: { mark: Mark }) {
   const bulk = () => {
     const { earned, hard, total } = counts();
     if (hard === total) {
-      if (confirm(`Clear the ${props.mark.label} mark for all ${total} characters?`)) setMarkRow(props.mark.id, 0);
+      if (
+        confirm(
+          `Clear the ${props.mark.label} mark for all ${total} characters?`,
+        )
+      )
+        setMarkRow(props.mark.id, 0);
     } else if (earned === total) {
       setMarkRow(props.mark.id, 2);
     } else {
@@ -41,7 +45,11 @@ export function BossHeader(props: { mark: Mark }) {
         }
       }}
     >
-      <Sprite class="boss-art" src={bossImage(props.mark.id)} alt={props.mark.label} />
+      <Sprite
+        class="boss-art"
+        src={bossImage(props.mark.id)}
+        alt={props.mark.label}
+      />
       <span class="boss-label">{props.mark.label}</span>
     </div>
   );

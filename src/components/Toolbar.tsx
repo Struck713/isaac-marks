@@ -1,16 +1,15 @@
 import { For, createSignal } from "solid-js";
-import { MARKS } from "../data.ts";
 import {
-  importState,
+  importMarks,
   reset,
   setFilter,
   setHideCompleted,
   setMarkMode,
-  snapshot,
   state,
   totals,
   type CharFilter,
 } from "../store.ts";
+import { SaveFileError, readSaveFile } from "../saveFile.ts";
 
 const FILTERS: { id: CharFilter; label: string }[] = [
   { id: "all", label: "All" },
@@ -27,23 +26,21 @@ export function Toolbar() {
     setTimeout(() => setMessage(""), 4000);
   };
 
-  const exportJson = () => {
-    const blob = new Blob([JSON.stringify(snapshot(), null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "isaac-completion-marks.json";
-    a.click();
-    URL.revokeObjectURL(url);
-    flash("Exported isaac-completion-marks.json");
-  };
-
-  const importJson = async (file: File) => {
+  /** Read the marks straight out of the game's own save file — nothing is written back. */
+  const importSave = async (file: File) => {
     try {
-      const ok = importState(JSON.parse(await file.text()));
-      flash(ok ? `Imported ${file.name}` : `${file.name} is not a marks export`);
-    } catch {
-      flash(`Could not read ${file.name}`);
+      const save = readSaveFile(await file.arrayBuffer());
+      importMarks(save.marks);
+      flash(
+        `Loaded ${save.earned} marks (${save.hard} on Hard) from ${file.name}` +
+          (save.checksumValid ? "" : " — its checksum does not match, so it may be edited"),
+      );
+    } catch (error) {
+      flash(
+        error instanceof SaveFileError
+          ? error.message
+          : `Could not read ${file.name}`,
+      );
     }
   };
 
@@ -67,27 +64,34 @@ export function Toolbar() {
             Hard <strong>{totals().hard}</strong>
           </span>
           <span class="progress-bar" aria-hidden="true">
-            <span class="progress-fill" style={{ width: `${(totals().earned / totals().total) * 100}%` }} />
-            <span class="progress-fill hard" style={{ width: `${(totals().hard / totals().total) * 100}%` }} />
+            <span
+              class="progress-fill"
+              style={{ width: `${(totals().earned / totals().total) * 100}%` }}
+            />
+            <span
+              class="progress-fill hard"
+              style={{ width: `${(totals().hard / totals().total) * 100}%` }}
+            />
           </span>
         </div>
 
         <div class="spacer" />
 
-        <button type="button" onClick={exportJson}>
-          Export JSON
-        </button>
-        <button type="button" onClick={() => fileInput.click()}>
-          Import JSON
+        <button
+          type="button"
+          onClick={() => fileInput.click()}
+          title="Fill the grid from a Repentance persistentgamedata .dat file"
+        >
+          Import Save File
         </button>
         <input
           ref={fileInput}
           class="visually-hidden"
           type="file"
-          accept="application/json,.json"
+          accept=".dat"
           onChange={(e) => {
             const f = e.currentTarget.files?.[0];
-            if (f) void importJson(f);
+            if (f) void importSave(f);
             e.currentTarget.value = "";
           }}
         />
@@ -95,7 +99,9 @@ export function Toolbar() {
           type="button"
           class="danger"
           onClick={() => {
-            if (confirm("Clear every completion mark? This cannot be undone.")) {
+            if (
+              confirm("Clear every completion mark? This cannot be undone.")
+            ) {
               reset();
               flash("All marks cleared");
             }
@@ -128,21 +134,15 @@ export function Toolbar() {
             checked={state.ui.hideCompleted}
             onChange={(e) => setHideCompleted(e.currentTarget.checked)}
           />
-          <span>Hide fully-Hard characters</span>
+          <span>Hide fully completed characters</span>
         </label>
 
         <div class="spacer" />
         <span class="hint">
-          Click a cell to cycle <em>none → Normal → Hard</em> · right-click to go back · click a
-          header to fill a whole row or column
+          Click a cell to cycle: <em>none, normal and hard</em> · right-click to
+          go back · click a header to fill a whole row or column
         </span>
       </div>
-
-      <p class="note">
-        {MARKS.length} marks × 34 characters. Some marks can't be earned in the same run —
-        Satan/The Lamb vs. Isaac/???, and Mother vs. The Beast — so those take separate runs.
-        The tracker doesn't enforce that; mark whatever you've done.
-      </p>
 
       <div class="flash" classList={{ show: message() !== "" }} role="status">
         {message()}

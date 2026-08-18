@@ -37,7 +37,26 @@ Normal, red on Hard — the same thing you see on the character-select screen. I
 switch; your data is untouched either way.
 
 The toolbar also has live progress counters, character filters (all / untainted / tainted), a
-"hide fully-Hard characters" toggle, **Export JSON** / **Import JSON** for backups, and **Reset**.
+"hide fully-Hard characters" toggle, **Import Save File**, and **Reset**.
+
+## Loading your marks from the game
+
+**Import Save File** fills the whole grid from your actual Repentance save, so you never have to
+click a cell you have already earned in game. Point it at
+
+```
+{Steam}/userdata/{steamid}/250900/remote/rep+persistentgamedata{1|2|3}.dat
+  or  Documents/My Games/Binding of Isaac Repentance+/persistentgamedata{1|2|3}.dat
+```
+
+and every mark lands on the grid — black for Normal, red for Hard, exactly as the game has it.
+The file is parsed in the browser, read-only: nothing is uploaded and your save is never written
+back to. Importing replaces the marks currently on the grid; your view settings stay put.
+
+The save format is not documented by the game, so it was reverse-engineered for this — the
+write-up is in `rev/FORMAT.md`, `src/saveFile.ts` is the reader the app uses, and
+`rev/decode_save.py` is a standalone command-line decoder that dumps everything else a save
+holds (achievements, items, bestiary, stats).
 
 ## Layout
 
@@ -46,7 +65,8 @@ src/
 ├── main.tsx              # mounts <App/>
 ├── App.tsx               # Toolbar + Grid + Legend
 ├── data.ts               # CHARACTERS, MARKS, QUALITIES, UNLOCKS — the single source of truth
-├── store.ts              # Solid store + localStorage autosave, import/export, bulk edits
+├── store.ts              # Solid store + localStorage autosave, save-file import, bulk edits
+├── saveFile.ts           # reads completion marks out of a Repentance persistentgamedata .dat
 ├── assets.ts             # the only place asset URLs are built
 ├── styles.css
 └── components/           # Grid, Cell, HeaderRow, BossHeader, Toolbar, Legend, Sprite
